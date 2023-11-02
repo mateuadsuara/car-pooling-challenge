@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ID=`docker ps | grep car-pooling-challenge | cut -f1 -d ' '`
+
+if [ -z "${ID}" ]; then
+  >&2 echo "Not running"
+  exit 1
+fi
+
+docker kill $ID

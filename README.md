@@ -198,3 +198,31 @@ problem but please bear in mind we want to see your best!
 - Document your decisions using MRs or in this very README adding sections to it,
   the same way you would be generating documentation for any other deliverable.
   We want to see how you operate in a quasi real work environment.
+
+# Solution
+
+## Decision log
+
+I've decided to start with Ruby as it is one of the skills you're looking for, 
+I have enough experience with it and it might be good enough for the requirements.
+I'll use Rack as the web framework because it is very lightweight and it is the 
+basis for Ruby on Rails. For the web server, I'll use Puma as it has worked well
+for me in the past. (I'll need to verify the most demanding scenarios once it is
+solved to see if it bottlenecks somewhere).
+
+## Usage
+
+I've added some scripts for easier development
+
+### Local scripts
+
+- `start-api` to run it locally and used within docker. This can receive
+   an optional `PORT` environment variable: `PORT=9091 ./start-api`
+
+### Docker scripts
+
+- `docker-build-api` to build the container
+- `docker-start-api` to run the previously built container. This can receive
+   an optional `PORT` environment variable: `PORT=9091 ./docker-start-api`.
+   If not specified, the `Dockerfile` defaults to port 9091.
+- `docker-stop-api` to stop all the API running containers

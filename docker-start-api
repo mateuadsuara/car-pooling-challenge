@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ -n "${PORT}" ]; then
+    PORT_ARG="-p $PORT:$PORT -e PORT=$PORT"
+fi
+
+docker run $PORT_ARG car-pooling-challenge
