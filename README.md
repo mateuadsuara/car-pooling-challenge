@@ -203,12 +203,24 @@ problem but please bear in mind we want to see your best!
 
 ## Decision log
 
+### Ruby+Rack+Puma
+
 I've decided to start with Ruby as it is one of the skills you're looking for, 
 I have enough experience with it and it might be good enough for the requirements.
 I'll use Rack as the web framework because it is very lightweight and it is the 
 basis for Ruby on Rails. For the web server, I'll use Puma as it has worked well
 for me in the past. (I'll need to verify the most demanding scenarios once it is
 solved to see if it bottlenecks somewhere).
+
+### In-memory storage
+
+Given the :warning: warning about the solution needing to be self-contained
+without using a database (in the [Tooling section](#tooling)),
+I'm assuming persistence of the data across restarts of the service is not desired.
+For now, I'm going to start with an in-memory data storage for this reason.
+I'm guessing an in-memory storage for 10^5 cars and waiting groups might end up
+using 8 - 32 GB or RAM memory which might be viable.
+Will revisit the in-memory approach once I verify this assumption.
 
 ## Usage
 
