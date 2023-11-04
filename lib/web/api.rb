@@ -1,19 +1,21 @@
+require 'rack'
+
 module Web
   class Api
+    include Rack
+
     def call(environment)
-      response(
-        body: ["hi"]
-      )
+      request = Request.new(environment)
+      response = handle(request)
+      response.finish
     end
 
-    private
+    def handle(request)
+      if request.get? && request.path_info == "/status"
+        return Response.new("ready", 200)
+      end
 
-    def response(status: 200, headers: {}, body: [])
-      [
-        status,
-        headers,
-        body
-      ]
+      Response.new(nil, 404)
     end
   end
 end

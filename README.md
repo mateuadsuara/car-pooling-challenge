@@ -230,6 +230,7 @@ I've added some scripts for easier development
 
 - `start-api` to run it locally and used within docker. This can receive
    an optional `PORT` environment variable: `PORT=9091 ./start-api`
+- `run-tests` to run the tests locally and used within docker.
 
 ### Docker scripts
 
@@ -238,3 +239,4 @@ I've added some scripts for easier development
    an optional `PORT` environment variable: `PORT=9091 ./docker-start-api`.
    If not specified, the `Dockerfile` defaults to port 9091.
 - `docker-stop-api` to stop all the API running containers
+- `docker-run-tests` to run the tests inside the previously built container.

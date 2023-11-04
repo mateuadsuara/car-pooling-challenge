@@ -1,0 +1,3 @@
+#!/bin/sh
+
+docker run -it --entrypoint ./run-tests car-pooling-challenge
