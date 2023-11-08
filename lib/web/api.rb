@@ -19,11 +19,11 @@ module Web
 
     def handle(request)
       [
-        :get_status,
-        :put_cars,
-        :post_journey,
-        :post_dropoff,
-        :post_locate
+        :handle_status,
+        :handle_cars,
+        :handle_journey,
+        :handle_dropoff,
+        :handle_locate
       ].each do |endpoint|
         maybe_response = send(endpoint, request)
         return maybe_response if maybe_response
@@ -32,14 +32,16 @@ module Web
       Response.new(nil, 404)
     end
 
-    def get_status(request)
-      return nil unless request.get? && request.path_info == "/status"
+    def handle_status(request)
+      return nil unless request.path_info == "/status"
+      return Response.new("", 405) unless request.get?
 
       Response.new("ready", 200)
     end
 
-    def put_cars(request)
-      return nil unless request.put? && request.path_info == "/cars"
+    def handle_cars(request)
+      return nil unless request.path_info == "/cars"
+      return Response.new("", 405) unless request.put?
 
       begin
         cars = Parser.parse_car_list(request)
@@ -56,8 +58,9 @@ module Web
       Response.new("", 200)
     end
 
-    def post_journey(request)
-      return nil unless request.post? && request.path_info == "/journey"
+    def handle_journey(request)
+      return nil unless request.path_info == "/journey"
+      return Response.new("", 405) unless request.post?
 
       begin
         group = Parser.parse_group(request)
@@ -74,8 +77,9 @@ module Web
       Response.new("", 200)
     end
 
-    def post_dropoff(request)
-      return nil unless request.post? && request.path_info == "/dropoff"
+    def handle_dropoff(request)
+      return nil unless request.path_info == "/dropoff"
+      return Response.new("", 405) unless request.post?
 
       begin
         id = Parser.parse_id(request)
@@ -92,8 +96,9 @@ module Web
       Response.new("", 200)
     end
 
-    def post_locate(request)
-      return nil unless request.post? && request.path_info == "/locate"
+    def handle_locate(request)
+      return nil unless request.path_info == "/locate"
+      return Response.new("", 405) unless request.post?
 
       begin
         id = Parser.parse_id(request)

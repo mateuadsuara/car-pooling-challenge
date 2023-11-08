@@ -7,6 +7,8 @@ require 'car_pooling/service'
 RSpec.describe Web::Api do
   include Rack::Test::Methods
 
+  ALL_METHODS = ["GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH"]
+
   let(:service_class) { spy(CarPooling::Service.class) }
   let(:service) { spy(CarPooling::Service) }
   let(:app) { described_class.new(service_class) }
@@ -16,20 +18,32 @@ RSpec.describe Web::Api do
       .and_return(service)
   end
 
-  describe 'get /status' do
-    it 'responds 200' do
-      get('/status')
+  describe '/status' do
+    valid_method = "GET"
+
+    it "responds 200 for #{valid_method} requests" do
+      custom_request(valid_method, '/status')
 
       expect(last_response.status).to eq(200)
     end
+
+    (ALL_METHODS - [valid_method]).each do |invalid_method|
+      it "responds 405 for #{invalid_method} requests" do
+        custom_request(invalid_method, "/status")
+
+        expect(last_response.status).to eq(405)
+      end
+    end
   end
 
-  describe 'put /cars' do
-    def request_load_cars(body, content_type = "application/json")
-      put('/cars', body, "CONTENT_TYPE" => content_type)
+  describe '/cars' do
+    valid_method = "PUT"
+
+    def request_load_cars(body, content_type: "application/json", method: "PUT")
+      custom_request(method, '/cars', body, "CONTENT_TYPE" => content_type)
     end
 
-    it 'responds 200 when registered correctly' do
+    it "responds 200 for #{valid_method} requests and registered correctly" do
       cars = [
         {
           id: 1,
@@ -47,6 +61,20 @@ RSpec.describe Web::Api do
         .with(cars.map{|c| CarPooling::Car.new(c)})
     end
 
+    (ALL_METHODS - [valid_method]).each do |invalid_method|
+      it "responds 405 for #{invalid_method} requests" do
+        cars = [
+          {
+            id: 1,
+            seats: 4
+          }
+        ]
+        request_load_cars(cars.to_json, method: invalid_method)
+
+        expect(last_response.status).to eq(405)
+      end
+    end
+
     it 'responds 400 for invalid content type' do
       cars = [
         {
@@ -54,7 +82,7 @@ RSpec.describe Web::Api do
           seats: 4
         }
       ]
-      request_load_cars(cars.to_json, "::invalid_content_type::")
+      request_load_cars(cars.to_json, content_type: "::invalid_content_type::")
 
       expect(last_response.status).to eq(400)
       expect(last_response.body).to eq("expected content type to be json")
@@ -127,12 +155,14 @@ RSpec.describe Web::Api do
     end
   end
 
-  describe 'post /journey' do
-    def request_perform_journey(body, content_type = "application/json")
-      post('/journey', body, "CONTENT_TYPE" => content_type)
+  describe '/journey' do
+    valid_method = "POST"
+
+    def request_perform_journey(body, content_type: "application/json", method: "POST")
+      custom_request(method, '/journey', body, "CONTENT_TYPE" => content_type)
     end
 
-    it 'responds 200 when registered correctly' do
+    it "responds 200 for #{valid_method} requests when registered correctly" do
       group = {
         id: 1,
         people: 4
@@ -145,12 +175,24 @@ RSpec.describe Web::Api do
       expect(last_response.status).to eq(200)
     end
 
+    (ALL_METHODS - [valid_method]).each do |invalid_method|
+      it "responds 405 for #{invalid_method} requests" do
+        group = {
+          id: 1,
+          people: 4
+        }
+        request_perform_journey(group.to_json, method: invalid_method)
+
+        expect(last_response.status).to eq(405)
+      end
+    end
+
     it 'responds 400 for invalid content type' do
       group = {
         id: 1,
         people: 4
       }
-      request_perform_journey(group.to_json, "::invalid_content_type::")
+      request_perform_journey(group.to_json, content_type: "::invalid_content_type::")
 
       expect(last_response.status).to eq(400)
       expect(last_response.body).to eq("expected content type to be json")
@@ -205,12 +247,14 @@ RSpec.describe Web::Api do
     end
   end
 
-  describe 'post /dropoff' do
-    def request_dropoff(body, content_type = "application/x-www-form-urlencoded")
-      post('/dropoff', body, "CONTENT_TYPE" => content_type)
+  describe '/dropoff' do
+    valid_method = "POST"
+
+    def request_dropoff(body, content_type: "application/x-www-form-urlencoded", method: "POST")
+      custom_request(method, '/dropoff', body, "CONTENT_TYPE" => content_type)
     end
 
-    it 'responds 200 when unregistered correctly' do
+    it "responds 200 for #{valid_method} requests when unregistered correctly" do
       id = 1
       request_dropoff("ID=#{id}")
 
@@ -220,8 +264,16 @@ RSpec.describe Web::Api do
       expect(last_response.status).to eq(200)
     end
 
+    (ALL_METHODS - [valid_method]).each do |invalid_method|
+      it "responds 405 for #{invalid_method} requests" do
+        request_dropoff("ID=1", method: invalid_method)
+
+        expect(last_response.status).to eq(405)
+      end
+    end
+
     it 'responds 400 for invalid content type' do
-      request_dropoff("ID=1", "::invalid_content_type::")
+      request_dropoff("ID=1", content_type: "::invalid_content_type::")
 
       expect(last_response.status).to eq(400)
       expect(last_response.body).to eq("expected content type to be form urlencoded")
@@ -255,12 +307,14 @@ RSpec.describe Web::Api do
     end
   end
 
-  describe 'post /locate' do
-    def request_locate(body, content_type = "application/x-www-form-urlencoded")
-      post('/locate', body, "CONTENT_TYPE" => content_type)
+  describe '/locate' do
+    valid_method = "POST"
+
+    def request_locate(body, content_type: "application/x-www-form-urlencoded", method: "POST")
+      custom_request(method, '/locate', body, "CONTENT_TYPE" => content_type)
     end
 
-    it 'responds 200 with the car' do
+    it "responds 200 for #{valid_method} requests with the car" do
       id = 1
 
       car = CarPooling::Car.new(id: 2, seats: 4)
@@ -274,8 +328,16 @@ RSpec.describe Web::Api do
       expect(last_response.body).to eq(car.to_h.to_json)
     end
 
+    (ALL_METHODS - [valid_method]).each do |invalid_method|
+      it "responds 405 for #{invalid_method} requests" do
+        request_locate("ID=1", method: invalid_method)
+
+        expect(last_response.status).to eq(405)
+      end
+    end
+
     it 'responds 400 for invalid content type' do
-      request_locate("ID=1", "::invalid_content_type::")
+      request_locate("ID=1", content_type: "::invalid_content_type::")
 
       expect(last_response.status).to eq(400)
       expect(last_response.body).to eq("expected content type to be form urlencoded")
