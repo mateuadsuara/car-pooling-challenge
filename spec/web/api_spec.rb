@@ -25,8 +25,8 @@ RSpec.describe Web::Api do
   end
 
   describe 'put /cars' do
-    def request_load_cars(body)
-      put('/cars', body, "CONTENT_TYPE" => "application/json")
+    def request_load_cars(body, content_type = "application/json")
+      put('/cars', body, "CONTENT_TYPE" => content_type)
     end
 
     it 'responds 200 when registered correctly' do
@@ -45,6 +45,19 @@ RSpec.describe Web::Api do
       expect(last_response.status).to eq(200)
       expect(service_class).to have_received(:new)
         .with(cars.map{|c| CarPooling::Car.new(c)})
+    end
+
+    it 'responds 400 for invalid content type' do
+      cars = [
+        {
+          id: 1,
+          seats: 4
+        }
+      ]
+      request_load_cars(cars.to_json, "::invalid_content_type::")
+
+      expect(last_response.status).to eq(400)
+      expect(last_response.body).to eq("expected content type to be json")
     end
 
     it 'responds 400 for invalid json' do
@@ -115,8 +128,8 @@ RSpec.describe Web::Api do
   end
 
   describe 'post /journey' do
-    def request_perform_journey(body)
-      post('/journey', body, "CONTENT_TYPE" => "application/json")
+    def request_perform_journey(body, content_type = "application/json")
+      post('/journey', body, "CONTENT_TYPE" => content_type)
     end
 
     it 'responds 200 when registered correctly' do
@@ -130,6 +143,17 @@ RSpec.describe Web::Api do
         .with(CarPooling::Group.new(group))
 
       expect(last_response.status).to eq(200)
+    end
+
+    it 'responds 400 for invalid content type' do
+      group = {
+        id: 1,
+        people: 4
+      }
+      request_perform_journey(group.to_json, "::invalid_content_type::")
+
+      expect(last_response.status).to eq(400)
+      expect(last_response.body).to eq("expected content type to be json")
     end
 
     it 'responds 400 for invalid json' do
@@ -182,8 +206,8 @@ RSpec.describe Web::Api do
   end
 
   describe 'post /dropoff' do
-    def request_dropoff(body)
-      post('/dropoff', body, "CONTENT_TYPE" => "application/x-www-form-urlencoded")
+    def request_dropoff(body, content_type = "application/x-www-form-urlencoded")
+      post('/dropoff', body, "CONTENT_TYPE" => content_type)
     end
 
     it 'responds 200 when unregistered correctly' do
@@ -194,6 +218,13 @@ RSpec.describe Web::Api do
         .with(id)
 
       expect(last_response.status).to eq(200)
+    end
+
+    it 'responds 400 for invalid content type' do
+      request_dropoff("ID=1", "::invalid_content_type::")
+
+      expect(last_response.status).to eq(400)
+      expect(last_response.body).to eq("expected content type to be form urlencoded")
     end
 
     it 'responds 400 when not only one id' do
@@ -225,8 +256,8 @@ RSpec.describe Web::Api do
   end
 
   describe 'post /locate' do
-    def request_locate(body)
-      post('/locate', body, "CONTENT_TYPE" => "application/x-www-form-urlencoded")
+    def request_locate(body, content_type = "application/x-www-form-urlencoded")
+      post('/locate', body, "CONTENT_TYPE" => content_type)
     end
 
     it 'responds 200 with the car' do
@@ -241,6 +272,13 @@ RSpec.describe Web::Api do
 
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq(car.to_h.to_json)
+    end
+
+    it 'responds 400 for invalid content type' do
+      request_locate("ID=1", "::invalid_content_type::")
+
+      expect(last_response.status).to eq(400)
+      expect(last_response.body).to eq("expected content type to be form urlencoded")
     end
 
     it 'responds 400 when not only one id' do

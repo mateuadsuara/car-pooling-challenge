@@ -41,10 +41,8 @@ module Web
     def put_cars(request)
       return nil unless request.put? && request.path_info == "/cars"
 
-      body = request.body.gets
-
       begin
-        cars = Parser.parse_car_list(body)
+        cars = Parser.parse_car_list(request)
       rescue => e
         return Response.new(e.message, 400)
       end
@@ -61,10 +59,8 @@ module Web
     def post_journey(request)
       return nil unless request.post? && request.path_info == "/journey"
 
-      body = request.body.gets
-
       begin
-        group = Parser.parse_group(body)
+        group = Parser.parse_group(request)
       rescue => e
         return Response.new(e.message, 400)
       end
@@ -81,10 +77,8 @@ module Web
     def post_dropoff(request)
       return nil unless request.post? && request.path_info == "/dropoff"
 
-      body = request.body.gets
-
       begin
-        id = Parser.parse_id(body)
+        id = Parser.parse_id(request)
       rescue => e
         return Response.new(e.message, 400)
       end
@@ -101,10 +95,8 @@ module Web
     def post_locate(request)
       return nil unless request.post? && request.path_info == "/locate"
 
-      body = request.body.gets
-
       begin
-        id = Parser.parse_id(body)
+        id = Parser.parse_id(request)
       rescue => e
         return Response.new(e.message, 400)
       end
@@ -122,7 +114,13 @@ module Web
   end
 
   class Parser
-    def self.parse_json(body)
+    def self.parse_json(request)
+      if (request.content_type&.downcase !=  "application/json")
+        raise StandardError.new("expected content type to be json")
+      end
+
+      body = request.body.gets
+
       begin
         return JSON.parse(body)
       rescue => e
@@ -130,8 +128,8 @@ module Web
       end
     end
 
-    def self.parse_car_list(body)
-      json = self.parse_json(body)
+    def self.parse_car_list(request)
+      json = self.parse_json(request)
 
       raise StandardError.new("expected a list") unless json.kind_of?(Array)
 
@@ -152,8 +150,8 @@ module Web
       CarPooling::Car.new(c)
     end
 
-    def self.parse_group(body)
-      json = self.parse_json(body)
+    def self.parse_group(request)
+      json = self.parse_json(request)
       raise StandardError.new("expected an object") unless json.kind_of?(Hash)
 
       id, people = json.values_at("id", "people")
@@ -163,7 +161,13 @@ module Web
       CarPooling::Group.new(json)
     end
 
-    def self.parse_id(body)
+    def self.parse_id(request)
+      if (request.content_type&.downcase !=  "application/x-www-form-urlencoded")
+        raise StandardError.new("expected content type to be form urlencoded")
+      end
+
+      body = request.body.gets
+
       begin
         params = CGI::parse(body)
         ids = params["ID"]
