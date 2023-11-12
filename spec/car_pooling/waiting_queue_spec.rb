@@ -7,104 +7,149 @@ module CarPooling
 
     it 'starts empty' do
       expect(q.length).to eq(0)
-      expect(q.to_a).to eq([])
+      expect(q.to_a).to eq([
+      ])
     end
 
-    it 'with 1 element' do
-      q.push('e1', 3)
+    it 'enqueue 1 time' do
+      id = 10
+      space = 3
+
+      q.enqueue(id, space)
+
       expect(q.length).to eq(1)
-      expect(q.next_for_space(2)).to eq(nil)
-      expect(q.next_for_space(3)).to eq('e1')
-      expect(q.next_for_space(4)).to eq('e1')
-      expect(q.to_a).to eq([['e1', 3]])
+      expect(q.to_a).to eq([
+        [id, space]
+      ])
     end
 
-    it 'remove the only element' do
-      q.push('e1', 3)
-      q.remove('e1')
+    it 'enqueue adds to the end' do
+      q.enqueue(5, 3)
+      q.enqueue(2, 4)
+      q.enqueue(6, 2)
+      q.enqueue(4, 3)
+
+      expect(q.length).to eq(4)
+      expect(q.to_a).to eq([
+        [5, 3],
+        [2, 4],
+        [6, 2],
+        [4, 3]
+      ])
+    end
+
+    it 'remove when previously enqueued' do
+      id = 10
+
+      q.enqueue(id, 3)
+      q.remove(id)
+
       expect(q.length).to eq(0)
-      expect(q.to_a).to eq([])
+      expect(q.to_a).to eq([
+      ])
     end
 
-    it 'errors on existing element' do
-      q.push('e1')
-      expect{q.push('e1')}.to raise_error(Duplicate)
-    end
-
-    it 'does not error if previously existing element is removed' do
-      q.push('e1')
-      q.remove('e1')
-      expect{q.push('e1')}.not_to raise_error
-    end
-
-    it 'errors on missing element' do
-      expect{q.remove('e1')}.to raise_error(Missing)
-    end
-
-    it 'pushes elements to the end' do
-      q.push(5)
-      q.push(2)
-      q.push(6)
-      q.push(4)
-      expect(q.to_a).to eq([5, 2, 6, 4])
-    end
-
-    it 'removing elements preserve order of the other elements' do
-      q.push(5)
-      q.push(2)
-      q.push(6)
-      q.push(4)
+    it 'remove preserves order' do
+      q.enqueue(5, 1)
+      q.enqueue(2, 2)
+      q.enqueue(6, 3)
+      q.enqueue(4, 4)
       q.remove(2)
-      q.push(3)
+      q.enqueue(3, 5)
       q.remove(4)
-      q.push(2)
+      q.enqueue(2, 6)
 
-      es = []
-      q.each do |e|
-        es << e
-      end
-
-      expected_elements = [5, 6, 3, 2]
-      expect(es).to eq(expected_elements)
-      expect(q.to_a).to eq(expected_elements)
+      expect(q.length).to eq(4)
+      expect(q.to_a).to eq([
+        [5, 1],
+        [6, 3],
+        [3, 5],
+        [2, 6]
+      ])
     end
 
-    it 'can remove current element while iterating' do
-      q.push(5)
-      q.push(2)
-      q.push(6)
-      q.push(4)
+    it 'errors on enqueue when previously enqueued' do
+      id = 10
+      space = 3
 
-      visited = []
-      q.each do |e|
-        visited << e
-        if e == 2
-          q.remove(e)
+      q.enqueue(id, space)
+
+      expect{q.enqueue(id, space)}
+        .to raise_error(WaitingQueue::Duplicate)
+    end
+
+    it 'does not error on enqueue when removed' do
+      id = 10
+      space = 3
+
+      q.enqueue(id, space)
+      q.remove(id)
+
+      expect{q.enqueue(id, space)}
+        .not_to raise_error
+    end
+
+    it 'errors on remove when missing id' do
+      id = 10
+
+      expect{q.remove(id)}
+        .to raise_error(WaitingQueue::Missing)
+    end
+
+    describe 'next_fitting_in' do
+      it 'is nil when nothing in the queue' do
+        (0..10).each do |s|
+          expect(q.next_fitting_in(s)).to eq(nil)
         end
       end
 
-      expect(visited).to eq([5, 2, 6, 4])
-      expect(q.to_a).to eq([5, 6, 4])
-    end
+      it 'returns the only available one for exact space' do
+        id = 10
+        space = 1
 
-    it 'skips future elements if removed while iterating' do
-      q.push(5)
-      q.push(2)
-      q.push(6)
-      q.push(4)
+        q.enqueue(id, space)
 
-      visited = []
-      q.each do |e|
-        visited << e
-        if e == 2
-          q.remove(5)
-          q.remove(e)
-          q.remove(6)
-        end
+        expect(q.next_fitting_in(space)).to eq([id, space])
       end
 
-      expect(visited).to eq([5, 2, 4])
-      expect(q.to_a).to eq([4])
+      it 'returns the only available one for a bit less space' do
+        id = 10
+
+        q.enqueue(id, 1)
+
+        expect(q.next_fitting_in(2)).to eq([id, 1])
+      end
+
+      it 'returns the first when two of same space' do
+        space = 5
+
+        q.enqueue(1, space)
+        q.enqueue(2, space)
+
+        expect(q.next_fitting_in(space)).to eq([1, space])
+      end
+
+      it 'returns the second when the first does not fit' do
+        q.enqueue(1, 5)
+        q.enqueue(2, 4)
+
+        expect(q.next_fitting_in(4)).to eq([2, 4])
+      end
+
+      it 'returns the first when can fit less than second' do
+        q.enqueue(2, 4)
+        q.enqueue(1, 5)
+
+        expect(q.next_fitting_in(5)).to eq([2, 4])
+      end
+
+      it 'returns nil when cannot find space' do
+        q.enqueue(1, 5)
+        q.enqueue(2, 6)
+        q.enqueue(3, 3)
+
+        expect(q.next_fitting_in(2)).to eq(nil)
+      end
     end
   end
 end

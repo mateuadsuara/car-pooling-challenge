@@ -259,6 +259,14 @@ module CarPooling
         expect(service.locate_car_by_group_id(group3.id)).to eq(car1)
       end
     end
+
     xit 'car in queue is removed from queue'
+
+    xit 'a very long queue' do
+      #one car for 5
+      #one group of 5 takes it
+      #many groups of 6 waiting
+      #at the end, a group of 5 waiting
+    end
   end
 end

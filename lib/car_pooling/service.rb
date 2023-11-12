@@ -42,33 +42,30 @@ module CarPooling
       @group_people[group.id] = group.people
       assigned_car_id = @car_space.add_group(group.id, group.people)
 
-      @queue.push(group.id) unless assigned_car_id
+      @queue.enqueue(group.id, group.people) unless assigned_car_id
       nil
     end
 
     def dropoff_group_by_id(group_id)
-      raise MissingIdError.new(id: group_id) unless @group_people[group_id]
+      group_people = @group_people[group_id]
+      raise MissingIdError.new(id: group_id) unless group_people
 
-      freed_car_id = @car_space.remove_group(group_id, @group_people[group_id])
+      freed_car_id = @car_space.remove_group(group_id, group_people)
       @group_people.delete(group_id)
 
-      if freed_car_id
-        #TODO: implement
-        #while(remaining_space = @car_space.available_space_for_car(freed_car_id) > 0) do
-          #next_group_id, next_people = @queue.next_for_space(remaining_space)
-          #@car_space.add_group(next_group_id, next_people)
-          #@queue.remove(next_group_id)
-        #end
-
-        @queue.each do |next_waiting_group_id|
-          assigned_car = @car_space.add_group(next_waiting_group_id, @group_people[next_waiting_group_id])
-          #@queue.remove(next_waiting_group_id) if assigned_car #TODO: test
-
-          break if @car_space.available_space_for_car(freed_car_id) == 0
-        end
-      else
+      if !freed_car_id
         @queue.remove(group_id)
+        return
       end
+
+      loop do
+        available_space = @car_space.available_space_for_car(freed_car_id)
+        next_group_id, next_people = @queue.next_fitting_in(available_space)
+        break unless next_group_id
+        @car_space.add_group(next_group_id, next_people, freed_car_id)
+        @queue.remove(next_group_id) #TODO: test
+      end
+
       nil
     end
 

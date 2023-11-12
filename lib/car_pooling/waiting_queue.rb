@@ -3,29 +3,87 @@ module CarPooling
     class Duplicate < StandardError; end
     class Missing < StandardError; end
 
-    def initialize
-      @h = {}
+    def initialize(precreate_queues_for_spaces = 1..6)
+      @queues_by_space = {}
+
+      #create queues now for the expected amounts of people
+      #per group so we avoid cloning queues on enqueue for
+      #a new amount of people
+      precreate_queues_for_spaces.each do |space|
+        @queues_by_space[space] = {}
+      end
     end
 
     def length
-      @h.length
+      biggest_queue&.length || 0
     end
 
-    def push(e, s = nil)
-      raise Duplicate.new if @h.has_key?(e)
-      @h[e] = nil
+    def enqueue(id, space)
+      bs = biggest_space
+      bq = biggest_queue(bs)
+      raise Duplicate.new if bq&.has_key?(id)
+
+      if bq.nil?
+        @queues_by_space[space] = {}
+      elsif space > bs
+        @queues_by_space[space] = bq.clone
+      elsif !@queues_by_space.has_key?(space)
+        @queues_by_space[space] = {}
+      end
+
+      @queues_by_space.each do |queue_space, queue|
+        if queue_space >= space
+          queue[id] = space
+        end
+      end
     end
 
-    def each(&block)
-      @h.each{|k, _| block.call(k)}
+    def next_fitting_in(space)
+      ss = smallest_space
+      return nil unless ss
+
+      space.downto(ss).each do |queue_space|
+        queue = @queues_by_space[queue_space]
+        next unless queue
+
+        queue.each do |id, s|
+          return [id, s]
+        end
+      end
+
+      nil
     end
 
-    def remove(e)
-      @h.delete(e){|e| raise Missing.new}
+    def remove(id)
+      (biggest_queue || {}).delete(id){raise Missing.new}
+      @queues_by_space.each do |space, queue|
+        queue.delete(id)
+      end
     end
 
     def to_a
-      @h.keys
+      biggest_queue.to_a
+    end
+
+    private
+
+    def spaces
+      @queues_by_space.keys
+    end
+
+    def smallest_space(ks = nil)
+      ks ||= spaces
+      ks.min
+    end
+
+    def biggest_space(ks = nil)
+      ks ||= spaces
+      ks.max
+    end
+
+    def biggest_queue(bs = nil)
+      bs ||= biggest_space
+      @queues_by_space[bs]
     end
   end
 end

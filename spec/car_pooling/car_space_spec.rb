@@ -24,6 +24,19 @@ RSpec.describe CarPooling::CarSpace do
     expect(s.to_h).to eq({1 => 4})
   end
 
+  it 'a group can be added to a specific car' do
+    car_id = 1
+    s = described_class.new({car_id => 4})
+
+    group_id = 2
+    assigned_car_id = s.add_group(group_id, 5, car_id)
+
+    expect(assigned_car_id).to eq(car_id)
+    expect(s.car_for_group(group_id)).to eq(car_id)
+    expect(s.available_space_for_car(car_id)).to eq(-1)
+    expect(s.to_h).to eq({car_id => -1})
+  end
+
   it 'filling a car' do
     car_id = 1
     car_seats = {car_id => 4}
@@ -77,7 +90,6 @@ RSpec.describe CarPooling::CarSpace do
     expect(s.remove_group(2, 1)).to eq(car_id)
     expect(s.car_for_group(2)).to eq(nil)
     expect(s.to_h).to eq({car_id => 4})
-    puts s.inspect
   end
 
   xit 'prefering the car that can be filled the most'

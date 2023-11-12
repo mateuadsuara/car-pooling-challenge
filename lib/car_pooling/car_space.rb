@@ -11,12 +11,17 @@ module CarPooling
       @group_car = {}
     end
 
-    def add_group(id, people)
-      car_id, previous_space = car_with_closest_available_space_for_group_of(people)
-      return nil unless car_id
+    def add_group(id, people, car_id = nil)
+      if car_id
+        previous_space = @car_space[car_id]
+      else
+        car_id, previous_space = car_with_closest_available_space_for_group_of(people)
+        return nil unless car_id
+      end
 
-      @car_space[car_id] -= people
-      change_space_on_car(car_id, previous_space, @car_space[car_id])
+      next_space = previous_space - people
+      @car_space[car_id] = next_space
+      change_space_on_car(car_id, previous_space, next_space)
 
       @group_car[id] = car_id
       car_id
@@ -27,8 +32,9 @@ module CarPooling
       previous_space = @car_space[car_id]
       return nil unless car_id
 
-      @car_space[car_id] += people
-      change_space_on_car(car_id, previous_space, @car_space[car_id])
+      next_space = previous_space + people
+      @car_space[car_id] = next_space
+      change_space_on_car(car_id, previous_space, next_space)
 
       @group_car.delete(id)
       car_id
