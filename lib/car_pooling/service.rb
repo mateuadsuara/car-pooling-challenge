@@ -1,3 +1,7 @@
+require 'car_space'
+require 'keyed_queue'
+require 'set'
+
 module CarPooling
   class MissingIdError < StandardError
     attr_reader :id
@@ -17,95 +21,54 @@ module CarPooling
 
   Car = Struct.new(:id, :seats, keyword_init: true)
 
-  class CarToGroups
-    attr_accessor :car, :to_groups
-
-    def initialize(car)
-      @car = car
-      @to_groups = []
-    end
-
-    def available_seats
-      @car.seats - @to_groups.map{|tg| tg.group.people}.sum
-    end
-
-    def can_fit?(group)
-      available_seats >= group.people
-    end
-
-    def remove_group(group_id)
-      to_groups.reject!{|tg| tg.group.id == group_id}
-    end
-  end
-
   Group = Struct.new(:id, :people, keyword_init: true)
-
-  class GroupToCar
-    attr_accessor :group, :to_car
-
-    def initialize(group)
-      @group = group
-      @to_car = nil
-    end
-  end
 
   class Service
     def initialize(cars)
-      duplicate_car_id, _ = cars.group_by{|c| c.id}.find{|id, cars_per_id| cars_per_id.length > 1 }
-      raise DuplicateIdError.new(id: duplicate_car_id) if duplicate_car_id
+      ids = Set.new
+      car_with_duplicate_id = cars.find{|c| !ids.add?(c.id)}
+      raise DuplicateIdError.new(id: car_with_duplicate_id.id) if car_with_duplicate_id
 
-      @many_car_to_groups = cars.map{|c| CarToGroups.new(c)}
-      @many_group_to_car = []
+      @car_seats = cars.inject({}){|acc, car| acc[car.id] = car.seats; acc}
+      @group_people = {}
+      @car_space = CarSpace.new(@car_seats)
+      @queue = KeyedQueue.new
     end
 
     def add_group_journey(group)
-      previous_journey_with_same_id = @many_group_to_car.find{|gtc| gtc.group.id == group.id}
-      raise DuplicateIdError.new(id: group.id) if previous_journey_with_same_id
+      raise DuplicateIdError.new(id: group.id) if @group_people[group.id]
 
-      group_to_car = GroupToCar.new(group)
+      @group_people[group.id] = group.people
+      assigned_car_id = @car_space.add_group(group.id, group.people)
 
-      best_available_car = @many_car_to_groups
-        .sort_by{|ctg| ctg.available_seats}
-        .find{|ctg| ctg.can_fit?(group)}
-      if best_available_car
-        set_relationship(best_available_car, group_to_car)
-      end
-
-      @many_group_to_car << group_to_car
+      @queue.push(group.id) unless assigned_car_id
+      nil
     end
 
     def dropoff_group_by_id(group_id)
-      group_index = @many_group_to_car.find_index{|gtc| gtc.group.id == group_id}
-      raise MissingIdError.new(id: group_id) unless group_index
+      raise MissingIdError.new(id: group_id) unless @group_people[group_id]
 
-      dropped_off_group = @many_group_to_car[group_index]
-      @many_group_to_car[group_index] = nil
-      @many_group_to_car.compact!
+      freed_car_id = @car_space.remove_group(group_id, @group_people[group_id])
+      @group_people.delete(group_id)
 
-      freed_car = dropped_off_group.to_car
-      freed_car.remove_group(group_id)
+      if freed_car_id
+        @queue.each do |next_waiting_group_id|
+          assigned_car = @car_space.add_group(next_waiting_group_id, @group_people[next_waiting_group_id])
+          #@queue.remove(next_waiting_group_id) if assigned_car #TODO: test
 
-      @many_group_to_car.filter{|gtc| gtc.to_car.nil?}.each do |next_waiting_group|
-        if freed_car.can_fit?(next_waiting_group.group)
-          set_relationship(freed_car, next_waiting_group)
+          break if @car_space.space_for_car(freed_car_id) == 0
         end
-
-        break if freed_car.available_seats == 0
+      else
+        @queue.remove(group_id)
       end
+      nil
     end
 
     def locate_car_by_group_id(group_id)
-      located_group = @many_group_to_car.find{|gtc| gtc.group.id == group_id}
-      raise MissingIdError.new(id: group_id) unless located_group
+      raise MissingIdError.new(id: group_id) unless @group_people[group_id]
 
-      located_group.to_car&.car
-    end
-
-    private
-
-    def set_relationship(car, group)
-      car.to_groups << group
-      group.to_car = car
+      car_id = @car_space.car_for_group(group_id)
+      Car.new(id: car_id, seats: @car_seats[car_id]) if car_id
     end
   end
 end

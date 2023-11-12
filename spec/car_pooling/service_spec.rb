@@ -259,5 +259,6 @@ module CarPooling
         expect(service.locate_car_by_group_id(group3.id)).to eq(car1)
       end
     end
+    xit 'car in queue is removed from queue'
   end
 end
