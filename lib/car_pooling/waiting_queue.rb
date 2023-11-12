@@ -42,13 +42,17 @@ module CarPooling
       ss = smallest_space
       return nil unless ss
 
-      space.downto(ss).each do |queue_space|
+      i = space
+      while i >= ss
+        queue_space = i
         queue = @queues_by_space[queue_space]
-        next unless queue
-
-        queue.each do |id, s|
-          return [id, s]
+        if queue
+          queue.each do |id, s|
+            return [id, s]
+          end
         end
+
+        i -= 1
       end
 
       nil
