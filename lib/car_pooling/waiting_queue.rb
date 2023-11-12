@@ -1,12 +1,8 @@
-module KeyedQueue
-  def self.new
-    Container.new
-  end
+module CarPooling
+  class WaitingQueue
+    class Duplicate < StandardError; end
+    class Missing < StandardError; end
 
-  class Duplicate < StandardError; end
-  class Missing < StandardError; end
-
-  class Container
     def initialize
       @h = {}
     end
@@ -15,7 +11,7 @@ module KeyedQueue
       @h.length
     end
 
-    def push(e)
+    def push(e, s = nil)
       raise Duplicate.new if @h.has_key?(e)
       @h[e] = nil
     end

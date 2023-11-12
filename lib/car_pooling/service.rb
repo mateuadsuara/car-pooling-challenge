@@ -1,5 +1,5 @@
-require 'car_space'
-require 'keyed_queue'
+require 'car_pooling/car_space'
+require 'car_pooling/waiting_queue'
 require 'set'
 
 module CarPooling
@@ -28,11 +28,12 @@ module CarPooling
       ids = Set.new
       car_with_duplicate_id = cars.find{|c| !ids.add?(c.id)}
       raise DuplicateIdError.new(id: car_with_duplicate_id.id) if car_with_duplicate_id
-
       @car_seats = cars.inject({}){|acc, car| acc[car.id] = car.seats; acc}
+      #TODO: move previous to parsing step
+
       @group_people = {}
       @car_space = CarSpace.new(@car_seats)
-      @queue = KeyedQueue.new
+      @queue = WaitingQueue.new
     end
 
     def add_group_journey(group)
@@ -52,11 +53,18 @@ module CarPooling
       @group_people.delete(group_id)
 
       if freed_car_id
+        #TODO: implement
+        #while(remaining_space = @car_space.available_space_for_car(freed_car_id) > 0) do
+          #next_group_id, next_people = @queue.next_for_space(remaining_space)
+          #@car_space.add_group(next_group_id, next_people)
+          #@queue.remove(next_group_id)
+        #end
+
         @queue.each do |next_waiting_group_id|
           assigned_car = @car_space.add_group(next_waiting_group_id, @group_people[next_waiting_group_id])
           #@queue.remove(next_waiting_group_id) if assigned_car #TODO: test
 
-          break if @car_space.space_for_car(freed_car_id) == 0
+          break if @car_space.available_space_for_car(freed_car_id) == 0
         end
       else
         @queue.remove(group_id)

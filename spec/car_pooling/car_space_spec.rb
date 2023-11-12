@@ -1,7 +1,7 @@
 require 'rspec'
-require 'car_space'
+require 'car_pooling/car_space'
 
-RSpec.describe CarSpace do
+RSpec.describe CarPooling::CarSpace do
   it 'no cars' do
     s = described_class.new({})
 
@@ -9,7 +9,7 @@ RSpec.describe CarSpace do
 
     expect(assigned_car_id).to eq(nil)
     expect(s.car_for_group(1)).to eq(nil)
-    expect(s.space_for_car(1)).to eq(nil)
+    expect(s.available_space_for_car(1)).to eq(nil)
     expect(s.to_h).to eq({})
   end
 
@@ -20,7 +20,7 @@ RSpec.describe CarSpace do
 
     expect(assigned_car_id).to eq(nil)
     expect(s.car_for_group(2)).to eq(nil)
-    expect(s.space_for_car(1)).to eq(4)
+    expect(s.available_space_for_car(1)).to eq(4)
     expect(s.to_h).to eq({1 => 4})
   end
 
@@ -34,7 +34,7 @@ RSpec.describe CarSpace do
 
     expect(assigned_car_id).to eq(car_id)
     expect(s.car_for_group(group_id)).to eq(car_id)
-    expect(s.space_for_car(car_id)).to eq(0)
+    expect(s.available_space_for_car(car_id)).to eq(0)
     expect(s.to_h).to eq({car_id => 0})
     expect(car_seats).to eq({car_id => 4})
   end

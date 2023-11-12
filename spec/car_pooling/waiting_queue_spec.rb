@@ -1,9 +1,8 @@
 require 'rspec'
-require 'keyed_queue'
-require 'set'
+require 'car_pooling/waiting_queue'
 
-module KeyedQueue
-  RSpec.describe KeyedQueue do
+module CarPooling
+  RSpec.describe WaitingQueue do
     let(:q) { described_class.new }
 
     it 'starts empty' do
@@ -12,13 +11,16 @@ module KeyedQueue
     end
 
     it 'with 1 element' do
-      q.push('e1')
+      q.push('e1', 3)
       expect(q.length).to eq(1)
-      expect(q.to_a).to eq(['e1'])
+      expect(q.next_for_space(2)).to eq(nil)
+      expect(q.next_for_space(3)).to eq('e1')
+      expect(q.next_for_space(4)).to eq('e1')
+      expect(q.to_a).to eq([['e1', 3]])
     end
 
     it 'remove the only element' do
-      q.push('e1')
+      q.push('e1', 3)
       q.remove('e1')
       expect(q.length).to eq(0)
       expect(q.to_a).to eq([])
