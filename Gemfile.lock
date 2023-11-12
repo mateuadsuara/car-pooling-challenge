@@ -1,7 +1,10 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    benchmark-memory (0.2.0)
+      memory_profiler (~> 1)
     diff-lcs (1.5.0)
+    memory_profiler (1.0.1)
     nio4r (2.5.9)
     puma (6.4.0)
       nio4r (~> 2.0)
@@ -24,17 +27,20 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.12.0)
     rspec-support (3.12.1)
+    ruby-prof (1.6.3)
     webrick (1.8.1)
 
 PLATFORMS
   x86_64-darwin-22
 
 DEPENDENCIES
+  benchmark-memory
   puma
   rack
   rack-test
   rackup
   rspec
+  ruby-prof
 
 BUNDLED WITH
    2.4.10
