@@ -24,13 +24,8 @@ module CarPooling
   Group = Struct.new(:id, :people, keyword_init: true)
 
   class Service
-    def initialize(cars)
-      ids = Set.new
-      car_with_duplicate_id = cars.find{|c| !ids.add?(c.id)}
-      raise DuplicateIdError.new(id: car_with_duplicate_id.id) if car_with_duplicate_id
-      @car_seats = cars.inject({}){|acc, car| acc[car.id] = car.seats; acc}
-      #TODO: move previous to parsing step
-
+    def initialize(car_seats)
+      @car_seats = car_seats
       @group_people = {}
       @car_space = CarSpace.new(@car_seats)
       @queue = WaitingQueue.new

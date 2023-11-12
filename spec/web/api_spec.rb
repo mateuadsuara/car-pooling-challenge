@@ -58,7 +58,7 @@ RSpec.describe Web::Api do
 
       expect(last_response.status).to eq(200)
       expect(service_class).to have_received(:new)
-        .with(cars.map{|c| CarPooling::Car.new(c)})
+        .with({1=>4, 2=>6})
     end
 
     (ALL_METHODS - [valid_method]).each do |invalid_method|
@@ -144,9 +144,6 @@ RSpec.describe Web::Api do
           seats: 6
         }
       ]
-      allow(service_class).to receive(:new) do |cars|
-        raise CarPooling::DuplicateIdError.new(id: 1) if cars != []
-      end
 
       request_load_cars(cars.to_json)
 

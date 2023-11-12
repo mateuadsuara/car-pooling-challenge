@@ -8,7 +8,7 @@ module Web
 
     def initialize(service_class)
       @service_class = service_class
-      @service = @service_class.new([])
+      @service = @service_class.new({})
     end
 
     def call(environment)
@@ -49,11 +49,7 @@ module Web
         return Response.new(e.message, 400)
       end
 
-      begin
-        @service = @service_class.new(cars)
-      rescue CarPooling::DuplicateIdError => e
-        return Response.new("duplicate id: #{e.id}", 400)
-      end
+      @service = @service_class.new(cars)
 
       Response.new("", 200)
     end
@@ -139,10 +135,16 @@ module Web
       raise StandardError.new("expected a list") unless json.kind_of?(Array)
 
       idx = 0
-      json.map do |c|
+      ids = Set.new
+      cars = {}
+      json.each do |c|
         idx += 1
-        self.parse_car_element(c, idx -1)
+        car = self.parse_car_element(c, idx -1)
+        raise StandardError.new("duplicate id: #{car.id}") if !ids.add?(car.id)
+        cars[car.id] = car.seats
       end
+
+      cars
     end
 
     def self.parse_car_element(c, idx)
