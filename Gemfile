@@ -5,8 +5,9 @@ gem 'rackup'
 gem 'puma'
 
 group :test do
-  gem 'rack-test'
   gem 'rspec'
+  gem 'rack-test'
   gem 'benchmark-memory'
   gem 'ruby-prof'
+  gem 'rantly'
 end

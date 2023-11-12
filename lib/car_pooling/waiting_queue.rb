@@ -36,6 +36,8 @@ module CarPooling
           queue[id] = space
         end
       end
+
+      nil
     end
 
     def next_fitting_in(space)
@@ -63,6 +65,8 @@ module CarPooling
       @queues_by_space.each do |space, queue|
         queue.delete(id)
       end
+
+      nil
     end
 
     def to_a

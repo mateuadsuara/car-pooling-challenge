@@ -1,6 +1,11 @@
 require 'rspec'
 require 'car_pooling/waiting_queue'
 
+require 'rantly'
+require 'rantly/rspec_extensions'
+require 'rantly/shrinks'
+require 'rantly/custom/shrinks'
+
 module CarPooling
   RSpec.describe WaitingQueue do
     let(:q) { described_class.new }
@@ -149,6 +154,85 @@ module CarPooling
         q.enqueue(3, 3)
 
         expect(q.next_fitting_in(2)).to eq(nil)
+      end
+    end
+
+    describe 'properties' do
+      class SimplerQueue
+        def initialize
+          @h = {}
+        end
+
+        def length
+          @h.length
+        end
+
+        def enqueue(id, space)
+          raise WaitingQueue::Duplicate.new if @h.has_key?(id)
+          @h[id] = space
+          nil
+        end
+
+        def next_fitting_in(space)
+          @h.find{|id, s| s <= space}
+        end
+
+        def remove(id)
+          @h.delete(id){|id| raise WaitingQueue::Missing.new}
+          nil
+        end
+
+        def to_a
+          @h.to_a
+        end
+      end
+
+      def expect_same_queue_state(a, b)
+        possible_spaces = 1..6
+        expect(a.length).to eq(b.length)
+        possible_spaces.each do |space|
+          expect(a.next_fitting_in(space)).to eq(b.next_fitting_in(space))
+        end
+        expect(a.to_a).to eq(b.to_a)
+      end
+
+      it 'behaves like a simpler version' do
+        possible_ids = 0..10
+        possible_spaces = 1..6
+
+        actions_generator = Proc.new do
+          Rantly do
+            Deflating.new(array{freq(
+              [1, Proc.new do
+                Tuple.new([:enqueue, integer(possible_ids), ShrinkRange.new(integer(possible_spaces), possible_spaces)])
+              end],
+              [1, Proc.new do
+                Tuple.new([:remove, integer(possible_ids)])
+              end]
+            )})
+          end
+        end
+
+        property_of{ call(actions_generator) }.check do |actions|
+          efficient = described_class.new
+          simpler = SimplerQueue.new
+
+          expect_same_queue_state(efficient, simpler)
+
+          actions.each do |args|
+            args = args.array.compact
+
+            begin
+              res = efficient.send(*args)
+            rescue => e
+              expect{simpler.send(*args)}.to raise_error(e.class)
+            else
+              expect(res).to eq(simpler.send(*args))
+            end
+
+            expect_same_queue_state(efficient, simpler)
+          end
+        end
       end
     end
   end
