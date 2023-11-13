@@ -55,7 +55,7 @@ module CarPooling
     private
 
     def car_with_closest_available_space_for_group_of(people)
-      closest_available_space = @space_on_cars.keys.sort.find do |space| #TODO: test sort
+      closest_available_space = @space_on_cars.keys.sort.find do |space|
         space >= people
       end
       return nil unless closest_available_space
