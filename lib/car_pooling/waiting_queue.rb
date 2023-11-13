@@ -48,11 +48,9 @@ module CarPooling
       while i >= ss
         queue_space = i
         queue = @queues_by_space[queue_space]
-        if queue
-          queue.each do |id, s|
-            return [id, s]
-          end
-        end
+
+        maybe_next = queue&.first
+        return maybe_next if maybe_next
 
         i -= 1
       end
