@@ -5,7 +5,7 @@ require 'benchmark'
 require 'car_pooling/waiting_queue'
 require 'car_pooling/simpler_queue'
 
-RSpec.describe CarPooling::WaitingQueue do
+RSpec.describe CarPooling::WaitingQueue, performance: true do
   def enqueue_many(queue, n, space = nil, start_id: 0)
     (start_id..(start_id+n)).each do |id|
       s = space&.call || space || (1..6).to_a.sample

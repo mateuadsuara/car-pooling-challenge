@@ -5,7 +5,7 @@ require 'ruby-prof'
 
 require 'car_pooling/service'
 
-RSpec.describe CarPooling::Service do
+RSpec.describe CarPooling::Service, performance: true do
   def random_cars(n)
     cars = {}
     (1..n).each do |i|
