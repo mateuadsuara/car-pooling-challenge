@@ -32,10 +32,13 @@ RSpec.describe CarPooling::WaitingQueue, performance: true do
         x.report("enqueue valid space"){
           queue.enqueue(rand, (1..6).to_a.sample)
         }
-        x.report("enqueue more than biggest space"){
+        x.report("enqueue same bigger than biggest space"){
+          queue.enqueue(rand, 99)
+        }
+        x.report("enqueue different bigger than biggest space"){
           queue.enqueue(rand, (99..999).to_a.sample)
         }
-        x.report("enqueue less than smallest space"){
+        x.report("enqueue different smaller than smallest space"){
           queue.enqueue(rand, (-999..0).to_a.sample)
         }
       }
