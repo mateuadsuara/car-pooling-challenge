@@ -26,6 +26,7 @@ module Web
       id, seats = c.values_at("id", "seats")
       raise StandardError.new("missing id attribute on index #{idx}") unless id
       raise StandardError.new("missing seats attribute on index #{idx}") unless seats
+      raise StandardError.new("expected seats to be an integer on index #{idx}") unless seats.is_a?(Integer)
 
       Car.new(c)
     end
@@ -38,6 +39,7 @@ module Web
       id, people = json.values_at("id", "people")
       raise StandardError.new("missing id attribute") unless id
       raise StandardError.new("missing people attribute") unless people
+      raise StandardError.new("expected people to be an integer") unless people.is_a?(Integer)
 
       Group.new(json)
     end

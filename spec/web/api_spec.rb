@@ -133,6 +133,19 @@ RSpec.describe Web::Api do
       expect(last_response.body).to eq("missing seats attribute on index 0")
     end
 
+    it 'responds 400 for non-numeric seats' do
+      cars = [
+        {
+          id: 1,
+          seats: 5.3
+        }
+      ]
+      request_load_cars(cars.to_json)
+
+      expect(last_response.status).to eq(400)
+      expect(last_response.body).to eq("expected seats to be an integer on index 0")
+    end
+
     it 'responds 400 for duplicate ids' do
       cars = [
         {
@@ -229,6 +242,17 @@ RSpec.describe Web::Api do
       expect(last_response.body).to eq("missing people attribute")
     end
 
+    it 'responds 400 for non-numeric people' do
+      group = {
+        id: 1,
+        people: 5.3
+      }
+      request_perform_journey(group.to_json)
+
+      expect(last_response.status).to eq(400)
+      expect(last_response.body).to eq("expected people to be an integer")
+    end
+
     it 'responds 409 for duplicate ids' do
       group = {
         id: 1,
@@ -285,13 +309,6 @@ RSpec.describe Web::Api do
       end
     end
 
-    it 'responds 400 when invalid id type' do
-      request_dropoff('ID=a')
-
-      expect(last_response.status).to eq(400)
-      expect(last_response.body).to eq("expected ID to be an integer")
-    end
-
     it 'responds 404 when not found' do
       id = 1
       allow(service).to receive(:dropoff_group_by_id)
@@ -312,11 +329,11 @@ RSpec.describe Web::Api do
     end
 
     it "responds 200 for #{valid_method} requests with the car" do
-      id = 1
+      id = "1"
 
       car = [2, 4]
       allow(service).to receive(:locate_car_by_group_id)
-        .with(id)
+        .with(id.to_i)
         .and_return(car)
 
       request_locate("ID=#{id}")
@@ -347,13 +364,6 @@ RSpec.describe Web::Api do
         expect(last_response.status).to eq(400)
         expect(last_response.body).to eq("expected one ID x-www-form-urlencoded parameter")
       end
-    end
-
-    it 'responds 400 when invalid id type' do
-      request_locate('ID=a')
-
-      expect(last_response.status).to eq(400)
-      expect(last_response.body).to eq("expected ID to be an integer")
     end
 
     it 'responds 404 when the group is not found' do

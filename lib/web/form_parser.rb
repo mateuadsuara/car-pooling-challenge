@@ -20,7 +20,7 @@ module Web
       begin
         id = Integer(ids.first)
       rescue
-        raise StandardError.new("expected ID to be an integer")
+        id = ids.first
       end
 
       id
