@@ -120,7 +120,7 @@ module Web
     Group = Struct.new(:id, :people, keyword_init: true)
 
     def self.parse_json(request)
-      if (request.content_type&.downcase !=  "application/json")
+      if (request.content_type&.downcase != "application/json")
         raise StandardError.new("expected content type to be json")
       end
 
@@ -172,7 +172,7 @@ module Web
     end
 
     def self.parse_id(request)
-      if (request.content_type&.downcase !=  "application/x-www-form-urlencoded")
+      if (request.content_type&.downcase != "application/x-www-form-urlencoded")
         raise StandardError.new("expected content type to be form urlencoded")
       end
 
