@@ -47,10 +47,10 @@ module Web
         raise StandardError.new("expected content type to be json")
       end
 
-      body = request.body.gets
+      body = request.body
 
       begin
-        return JSON.parse(body)
+        return JSON.load(body)
       rescue => e
         raise StandardError.new("invalid json\n#{e.message}")
       end
