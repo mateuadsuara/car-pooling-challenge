@@ -20,7 +20,7 @@ RSpec.describe CarPooling::Service, performance: true do
   def random_group
     id = rand(1_000_000) + 1_000_000
     people = rand(6) + 1
-    CarPooling::Group.new(id: id, people: people)
+    {id: id, people: people}
   end
 
   def random_groups(n)
@@ -28,14 +28,14 @@ RSpec.describe CarPooling::Service, performance: true do
       id = i
       people = rand(6) + 1
       #people = (i % 6) + 1
-      CarPooling::Group.new(id: id, people: people)
+      {id: id, people: people}
     end
   end
 
   def setup(cars, groups)
     s = described_class.new(cars)
     groups.each do |g|
-      s.add_group_journey(g)
+      s.add_group_journey(g[:id], g[:people])
     end
     s
   end
@@ -54,13 +54,14 @@ RSpec.describe CarPooling::Service, performance: true do
         described_class.new(cs)
       }
       x.report("add journey"){
-        s.add_group_journey(random_group)
+        g = random_group
+        s.add_group_journey(g[:id], g[:people])
       }
       x.report("dropoff group"){
-        s.dropoff_group_by_id(gs.sample.id)
+        s.dropoff_group_by_id(gs.sample[:id])
       }
       x.report("locate group car"){
-        s.locate_car_by_group_id(gs.sample.id)
+        s.locate_car_by_group_id(gs.sample[:id])
       }
     }
   end
@@ -84,7 +85,7 @@ RSpec.describe CarPooling::Service, performance: true do
       x.report("loaded cars and groups"){
         s = described_class.new(cs)
         gs.each do |g|
-          s.add_group_journey(g)
+          s.add_group_journey(g[:id], g[:people])
         end
       }
     end
@@ -123,8 +124,8 @@ RSpec.describe CarPooling::Service, performance: true do
     cs = random_cars(n)
     s = setup(cs, gs)
     gs.each do |g|
-      s.locate_car_by_group_id(g.id)
-      s.dropoff_group_by_id(g.id)
+      s.locate_car_by_group_id(g[:id])
+      s.dropoff_group_by_id(g[:id])
     end
 
     result = profile.stop
