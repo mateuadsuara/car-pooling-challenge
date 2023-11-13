@@ -167,7 +167,7 @@ RSpec.describe Web::Api do
       request_perform_journey(group.to_json)
 
       expect(service).to have_received(:add_group_journey)
-        .with(CarPooling::Group.new(group))
+        .with(1, 4)
 
       expect(last_response.status).to eq(200)
     end
@@ -314,7 +314,7 @@ RSpec.describe Web::Api do
     it "responds 200 for #{valid_method} requests with the car" do
       id = 1
 
-      car = CarPooling::Car.new(id: 2, seats: 4)
+      car = [2, 4]
       allow(service).to receive(:locate_car_by_group_id)
         .with(id)
         .and_return(car)
@@ -322,7 +322,7 @@ RSpec.describe Web::Api do
       request_locate("ID=#{id}")
 
       expect(last_response.status).to eq(200)
-      expect(last_response.body).to eq(car.to_h.to_json)
+      expect(last_response.body).to eq({id: 2, seats: 4}.to_json)
     end
 
     (ALL_METHODS - [valid_method]).each do |invalid_method|

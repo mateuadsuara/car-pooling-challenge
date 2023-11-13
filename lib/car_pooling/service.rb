@@ -19,10 +19,6 @@ module CarPooling
     end
   end
 
-  Car = Struct.new(:id, :seats, keyword_init: true)
-
-  Group = Struct.new(:id, :people, keyword_init: true)
-
   class Service
     def initialize(car_seats)
       @car_seats = car_seats
@@ -31,13 +27,13 @@ module CarPooling
       @queue = WaitingQueue.new
     end
 
-    def add_group_journey(group)
-      raise DuplicateIdError.new(id: group.id) if @group_people[group.id]
+    def add_group_journey(id, people)
+      raise DuplicateIdError.new(id: id) if @group_people[id]
 
-      @group_people[group.id] = group.people
-      assigned_car_id = @car_space.add_group(group.id, group.people)
+      @group_people[id] = people
+      assigned_car_id = @car_space.add_group(id, people)
 
-      @queue.enqueue(group.id, group.people) unless assigned_car_id
+      @queue.enqueue(id, people) unless assigned_car_id
       nil
     end
 
@@ -68,7 +64,7 @@ module CarPooling
       raise MissingIdError.new(id: group_id) unless @group_people[group_id]
 
       car_id = @car_space.car_for_group(group_id)
-      Car.new(id: car_id, seats: @car_seats[car_id]) if car_id
+      [car_id, @car_seats[car_id]] if car_id
     end
   end
 end

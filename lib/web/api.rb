@@ -65,7 +65,7 @@ module Web
       end
 
       begin
-        @service.add_group_journey(group)
+        @service.add_group_journey(group.id, group.people)
       rescue CarPooling::DuplicateIdError => e
         return Response.new("duplicate id: #{e.id}", 409)
       end
@@ -103,18 +103,22 @@ module Web
       end
 
       begin
-        car = @service.locate_car_by_group_id(id)
+        car_id, car_seats = @service.locate_car_by_group_id(id)
       rescue CarPooling::MissingIdError
         return Response.new("", 404)
       end
 
-      return Response.new("", 204) unless car
+      return Response.new("", 204) unless car_id
 
-      Response.new(car.to_h.to_json, 200)
+      Response.new({id: car_id, seats: car_seats}.to_json, 200)
     end
   end
 
   class Parser
+    Car = Struct.new(:id, :seats, keyword_init: true)
+
+    Group = Struct.new(:id, :people, keyword_init: true)
+
     def self.parse_json(request)
       if (request.content_type&.downcase !=  "application/json")
         raise StandardError.new("expected content type to be json")
@@ -135,12 +139,11 @@ module Web
       raise StandardError.new("expected a list") unless json.kind_of?(Array)
 
       idx = 0
-      ids = Set.new
       cars = {}
       json.each do |c|
         idx += 1
         car = self.parse_car_element(c, idx -1)
-        raise StandardError.new("duplicate id: #{car.id}") if !ids.add?(car.id)
+        raise StandardError.new("duplicate id: #{car.id}") if cars.has_key?(car.id)
         cars[car.id] = car.seats
       end
 
@@ -154,7 +157,7 @@ module Web
       raise StandardError.new("missing id attribute on index #{idx}") unless id
       raise StandardError.new("missing seats attribute on index #{idx}") unless seats
 
-      CarPooling::Car.new(c)
+      Car.new(c)
     end
 
     def self.parse_group(request)
@@ -165,7 +168,7 @@ module Web
       raise StandardError.new("missing id attribute") unless id
       raise StandardError.new("missing people attribute") unless people
 
-      CarPooling::Group.new(json)
+      Group.new(json)
     end
 
     def self.parse_id(request)
