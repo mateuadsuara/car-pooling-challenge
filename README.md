@@ -267,6 +267,20 @@ apparent:
   to become and stop being available independently of the rest of the cars. This is
   just an observation.
 
+### Git history / MRs / README documentation
+
+I've decided to keep as raw as possible the history of commits for transparency sake.
+In the context where there needs to be collaboration with other teammates between
+changes, the MRs would be a great tool to use for allowing feedback loops.
+In a solo development context, I think it loses a lot of value (the feedback loop with
+other people's perspectives).
+I've decided to focus on the technical aspects and leave the documentation / sharing
+details to this README.
+
+At the end, after getting the acceptance tests passing, I've tried to keep pushes to
+master as if it was a branch intended to be stable
+(passing tests and worthy changes before pushing).
+
 ## Usage
 
 I've added some scripts for easier development
