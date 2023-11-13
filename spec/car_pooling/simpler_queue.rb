@@ -21,7 +21,7 @@ module CarPooling
     end
 
     def remove(id)
-      @h.delete(id){|id| raise StandardError.new(id.to_s)}
+      @h.delete(id){|id| raise WaitingQueue::Missing.new}
       nil
     end
 
