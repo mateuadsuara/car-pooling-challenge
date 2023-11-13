@@ -3,7 +3,7 @@ require 'car_pooling/waiting_queue'
 require 'set'
 
 module CarPooling
-  class MissingIdError < StandardError
+  class ErrorWithId < StandardError
     attr_reader :id
 
     def initialize(id:)
@@ -11,13 +11,8 @@ module CarPooling
     end
   end
 
-  class DuplicateIdError < StandardError
-    attr_reader :id
-
-    def initialize(id:)
-      @id = id
-    end
-  end
+  class MissingIdError < ErrorWithId; end
+  class DuplicateIdError < ErrorWithId; end
 
   class Service
     def initialize(car_seats)
