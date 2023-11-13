@@ -1,10 +1,12 @@
 require 'rspec'
-require 'car_pooling/waiting_queue'
 
 require 'rantly'
 require 'rantly/rspec_extensions'
 require 'rantly/shrinks'
 require 'rantly/custom/shrinks'
+
+require 'car_pooling/waiting_queue'
+require 'car_pooling/simpler_queue'
 
 module CarPooling
   RSpec.describe WaitingQueue do
@@ -158,36 +160,7 @@ module CarPooling
     end
 
     describe 'properties' do
-      class SimplerQueue
-        def initialize
-          @h = {}
-        end
-
-        def length
-          @h.length
-        end
-
-        def enqueue(id, space)
-          raise WaitingQueue::Duplicate.new if @h.has_key?(id)
-          @h[id] = space
-          nil
-        end
-
-        def next_fitting_in(space)
-          @h.find{|id, s| s <= space}
-        end
-
-        def remove(id)
-          @h.delete(id){|id| raise WaitingQueue::Missing.new}
-          nil
-        end
-
-        def to_a
-          @h.to_a
-        end
-      end
-
-      def expect_same_queue_state(a, b)
+      def expect_equal_queue_state(a, b)
         possible_spaces = 1..6
         expect(a.length).to eq(b.length)
         possible_spaces.each do |space|
@@ -217,7 +190,7 @@ module CarPooling
           efficient = described_class.new
           simpler = SimplerQueue.new
 
-          expect_same_queue_state(efficient, simpler)
+          expect_equal_queue_state(efficient, simpler)
 
           actions.each do |args|
             args = args.array.compact
@@ -230,7 +203,7 @@ module CarPooling
               expect(res).to eq(simpler.send(*args))
             end
 
-            expect_same_queue_state(efficient, simpler)
+            expect_equal_queue_state(efficient, simpler)
           end
         end
       end
