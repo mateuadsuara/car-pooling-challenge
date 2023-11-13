@@ -92,5 +92,136 @@ RSpec.describe CarPooling::CarSpace do
     expect(s.to_h).to eq({car_id => 4})
   end
 
-  xit 'prefering the car that can be filled the most'
+  describe 'prefering the car that can be filled the most' do
+    it 'a car would be completely filled' do
+      car_id = 2
+      s = described_class.new({
+        1 => 6,
+        car_id => 5,
+        3 => 6
+      })
+
+      expect(s.add_group(1, 5)).to eq(car_id)
+      expect(s.car_for_group(1)).to eq(car_id)
+      expect(s.to_h).to eq({
+        1 => 6,
+        car_id => 0,
+        3 => 6
+      })
+    end
+
+    it 'a car with a group would be completely filled' do
+      car_id = 2
+      s = described_class.new({
+        1 => 3,
+        car_id => 6
+      })
+
+      s.add_group(1, 4)
+
+      expect(s.add_group(2, 2)).to eq(car_id)
+      expect(s.car_for_group(2)).to eq(car_id)
+      expect(s.to_h).to eq({
+        1 => 3,
+        car_id => 0
+      })
+    end
+
+    it 'two cars would be completely filled' do
+      car_a = 2
+      car_b = 3
+      s = described_class.new({
+        1 => 4,
+        car_a => 3,
+        car_b => 3,
+        4 => 4
+      })
+
+      car_id = s.add_group(1, 3)
+      expect(car_id).to eq(car_a).or eq(car_b)
+      expect(s.car_for_group(1)).to eq(car_id)
+      expect(s.to_h).to eq({
+        1 => 4,
+        car_a => 0,
+        car_b => 3,
+        4 => 4
+      }).or eq({
+        1 => 4,
+        car_a => 3,
+        car_b => 0,
+        4 => 4
+      })
+    end
+
+    it 'a car with a group and an empty car would be completely filled' do
+      car_a = 2
+      car_b = 3
+      s = described_class.new({
+        1 => 2,
+        car_a => 3,
+        car_b => 7,
+        4 => 2
+      })
+
+      s.add_group(1, 4)
+
+      car_id = s.add_group(2, 3)
+      expect(car_id).to eq(car_a).or eq(car_b)
+      expect(s.car_for_group(2)).to eq(car_id)
+      expect(s.to_h).to eq({
+        1 => 2,
+        car_a => 0,
+        car_b => 3,
+        4 => 2
+      }).or eq({
+        1 => 2,
+        car_a => 3,
+        car_b => 0,
+        4 => 2
+      })
+    end
+
+    it 'one car would be almost filled' do
+      car_id = 2
+      s = described_class.new({
+        1 => 4,
+        car_id => 3,
+        3 => 4
+      })
+
+      expect(s.add_group(1, 2)).to eq(car_id)
+      expect(s.car_for_group(1)).to eq(car_id)
+      expect(s.to_h).to eq({
+        1 => 4,
+        car_id => 1,
+        3 => 4
+      })
+    end
+
+    it 'two cars would be almost filled' do
+      car_a = 2
+      car_b = 3
+      s = described_class.new({
+        1 => 4,
+        car_a => 3,
+        car_b => 3,
+        4 => 4
+      })
+
+      car_id = s.add_group(1, 2)
+      expect(car_id).to eq(car_a).or eq(car_b)
+      expect(s.car_for_group(1)).to eq(car_id)
+      expect(s.to_h).to eq({
+        1 => 4,
+        car_a => 1,
+        car_b => 3,
+        4 => 4
+      }).or eq({
+        1 => 4,
+        car_a => 3,
+        car_b => 1,
+        4 => 4
+      })
+    end
+  end
 end

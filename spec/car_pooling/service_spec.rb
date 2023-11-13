@@ -135,17 +135,19 @@ module CarPooling
         end
 
         it 'a car with a group and an empty car would be completely filled' do
-          car1 = Car.new(id: 1, seats: 3)
-          car2 = Car.new(id: 2, seats: 7)
-          service = new_service([car1, car2])
+          car1 = Car.new(id: 1, seats: 2)
+          car2 = Car.new(id: 2, seats: 3)
+          car3 = Car.new(id: 3, seats: 7)
+          car4 = Car.new(id: 4, seats: 2)
+          service = new_service([car1, car2, car3, car4])
 
           group1 = Group.new(id: 1, people: 4)
           service.add_group_journey(group1)
-          expect(service.locate_car_by_group_id(group1.id)).to eq(car2)
+          expect(service.locate_car_by_group_id(group1.id)).to eq(car3)
 
           group2 = Group.new(id: 2, people: 3)
           service.add_group_journey(group2)
-          expect(service.locate_car_by_group_id(group2.id)).to eq(car1).or eq(car2)
+          expect(service.locate_car_by_group_id(group2.id)).to eq(car2).or eq(car3)
         end
 
         it 'one car would be almost filled' do
@@ -160,13 +162,15 @@ module CarPooling
         end
 
         it 'two cars would be almost filled' do
-          car1 = Car.new(id: 1, seats: 3)
+          car1 = Car.new(id: 1, seats: 4)
           car2 = Car.new(id: 2, seats: 3)
-          service = new_service([car1, car2])
+          car3 = Car.new(id: 3, seats: 3)
+          car4 = Car.new(id: 4, seats: 4)
+          service = new_service([car1, car2, car3, car4])
 
           group1 = Group.new(id: 1, people: 2)
           service.add_group_journey(group1)
-          expect(service.locate_car_by_group_id(group1.id)).to eq(car1).or eq(car2)
+          expect(service.locate_car_by_group_id(group1.id)).to eq(car2).or eq(car3)
         end
       end
     end
@@ -254,15 +258,30 @@ module CarPooling
         expect(service.locate_car_by_group_id(group2.id)).to eq(car1)
         expect(service.locate_car_by_group_id(group3.id)).to eq(car1)
       end
-    end
 
-    xit 'car in queue is removed from queue'
+      it 'a long queue' do
+        car1 = Car.new(id: 1, seats: 5)
+        service = new_service([car1])
 
-    xit 'a very long queue' do
-      #one car for 5
-      #one group of 5 takes it
-      #many groups of 6 waiting
-      #at the end, a group of 5 waiting
+        group1 = Group.new(id: 1, people: 5)
+        service.add_group_journey(group1)
+        expect(service.locate_car_by_group_id(group1.id)).to eq(car1)
+
+        queue_size = 10_000
+        (2..queue_size).each do |n|
+          group = Group.new(id: n, people: 6)
+          service.add_group_journey(group)
+        end
+
+        last_group_in_queue = Group.new(id: queue_size + 1, people: 5)
+        service.add_group_journey(last_group_in_queue)
+
+        expect(service.locate_car_by_group_id(group1.id)).to eq(car1)
+        expect(service.locate_car_by_group_id(last_group_in_queue.id)).to eq(nil)
+
+        service.dropoff_group_by_id(group1.id)
+        expect(service.locate_car_by_group_id(last_group_in_queue.id)).to eq(car1)
+      end
     end
   end
 end

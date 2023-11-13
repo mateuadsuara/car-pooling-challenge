@@ -58,7 +58,7 @@ module CarPooling
         next_group_id, next_people = @queue.next_fitting_in(available_space)
         break unless next_group_id
         @car_space.add_group(next_group_id, next_people, freed_car_id)
-        @queue.remove(next_group_id) #TODO: test
+        @queue.remove(next_group_id)
       end
 
       nil
