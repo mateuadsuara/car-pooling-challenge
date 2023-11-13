@@ -222,6 +222,51 @@ I'm guessing an in-memory storage for 10^5 cars and waiting groups might end up
 using 8 - 32 GB or RAM memory which might be viable.
 Will revisit the in-memory approach once I verify this assumption.
 
+Revisit: After asking this, reiterating the instructions on this
+readme. Which led me to continue with those assumptions.
+In his words: "Sorry for not being more explicit, but one of the points of the exercise
+is to understand the current requirements. If you think something has not been explained
+correctly, you can make your own decision, documenting and justifying your assumption."
+
+### Unclear aspects
+
+On further thinking and development of the solution, some unclear aspects became
+apparent:
+
+- What happens for duplicate `id`s?
+  - On `PUT /cars`, two car objects in the list from the json body have the same `id`
+    value. In this case, I've decided to respond a `400 Bad Request`.
+  - On `POST /journey`, a second request with the same `id` value without requesting
+    `POST /dropoff` in between.
+    In this case, I've decided to respond a `409 Conflict`.
+
+- Which car to choose when multiple suitable cars are available?
+  - The description mentions "any car" can be taken. I've decided to prefer the ones
+    that would be filled the most with the group. This decision intends to better
+    "optimize the use of resources" (mentioned in the description as the goal).
+
+- What happens on `POST /locate` after a `POST /dropoff` for the same `id` if it was
+  previously assigned to a car?
+  - I'm guessing responding `404 Not Found` with empty body is the expected behavior.
+    But responding `404 Not Found` with the previously assigned car in the body might
+    be also desired. I've decided to keep the body empty.
+
+- Given the description mentions "the car availability service that will be used to
+  track the available seats in cars" makes me think there are at least two
+  interpretations of what the `seats` attribute for the car object in the `POST /locate`
+  endpoint can be intended to be:
+  - The same amount of seats for that car id specified on `PUT /cars`. I've decided
+    to go for this one.
+  - The amount of available seats or used seats in the car.
+
+- The `POST /locate` endpoint would also make sense if defined with the `GET` method
+  instead of `POST` and the `id` as a query parameter. This is just an observation.
+
+- Not allowing to add or remove cars in any other way but with `PUT /cars` makes me
+  guess this is to simplify the challenge. In a real situation, I would expect cars
+  to become and stop being available independently of the rest of the cars. This is
+  just an observation.
+
 ## Usage
 
 I've added some scripts for easier development
