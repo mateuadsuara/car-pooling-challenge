@@ -281,6 +281,49 @@ At the end, after getting the acceptance tests passing, I've tried to keep pushe
 master as if it was a branch intended to be stable
 (passing tests and worthy changes before pushing).
 
+### Additional tests
+
+I've added tests during development for increasing the chances that the code works as
+well as expected.
+
+All of them using RSpec and other libraries. They are located inside the `spec` folder.
+
+Check the [Usage section](#usage) for more details on how to run them.
+
+I've used 3 kinds of tests:
+
+#### Unit tests
+
+For checking the expected behavior of the parts by using specific examples of situations.
+
+#### Property tests
+
+For checking the expected behavior for the `WaitingQueue` and as an applicable showcase
+for the property-based testing approach, although Ruby is not the best language for it.
+
+This example uses a `SimplerQueue` as a reference of the correct behavior and checks
+that: for a set of random valid actions and arguments, they behave in the same way.
+
+In this case, this is useful because `WaitingQueue` has been implemented trying to be
+more efficient (and consequently more complex) than `SimplerQueue` but can be
+interchangeable and should keep the same correct behavior.
+
+#### Performance tests
+
+For measuring how long or how much memory certain parts of the code take.
+Their files are terminated with `*_performance_spec.rb` and are filtered by the tag
+`performance`.
+
+For example (and in reference to the previous `property tests`), there are performance
+tests comparing the time cost for `WaitingQueue` vs the `SimplerQueue` for 10^6 groups.
+
+The end-to-end business logic (on `CarPooling::Service`) performance tests are measuring
+the time cost and memory usage for 10^3, 10^4, 10^5 and 10^6 cars and groups in the
+different actions (load cars, add journey, dropoff and locate).
+
+This last one also includes a profiler run to see where there might be performance
+bottlenecks.
+
 ## Usage
 
 I've added some scripts for easier development
@@ -288,14 +331,17 @@ I've added some scripts for easier development
 ### Local scripts
 
 - `start-api` to run it locally and used within docker. This can receive
-   an optional `PORT` environment variable: `PORT=9091 ./start-api`
-- `run-tests` to run the tests locally and used within docker.
+   an optional `PORT` environment variable: `PORT=9091 ./start-api`.
+- `run-tests` to run the behavior tests locally and used within docker.
+- `run-performance-tests` to run the performance measurements and used within docker.
 
 ### Docker scripts
 
-- `docker-build-api` to build the container
+- `docker-build-api` to build the container.
 - `docker-start-api` to run the previously built container. This can receive
    an optional `PORT` environment variable: `PORT=9091 ./docker-start-api`.
    If not specified, the `Dockerfile` defaults to port 9091.
-- `docker-stop-api` to stop all the API running containers
-- `docker-run-tests` to run the tests inside the previously built container.
+- `docker-stop-api` to stop all the API running containers.
+- `docker-run-tests` to run the behavior tests inside the previously built container.
+- `docker-run-performance-tests` to run the performance measurements inside the previously
+  built container.
