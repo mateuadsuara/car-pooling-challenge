@@ -6,13 +6,13 @@ require 'ruby-prof'
 require 'car_pooling/service'
 
 RSpec.describe CarPooling::Service, performance: true do
-  def random_cars(n)
+  def generate_cars(n, seats = nil)
     cars = {}
     (1..n).each do |i|
       id = i
-      seats = rand(3) + 4
-      #seats = (i % 3) + 4
-      cars[id] = seats
+      s = seats || rand(3) + 4
+      #s = (i % 3) + 4
+      cars[id] = s
     end
     cars
   end
@@ -23,12 +23,12 @@ RSpec.describe CarPooling::Service, performance: true do
     {id: id, people: people}
   end
 
-  def random_groups(n)
+  def generate_groups(n, people = nil)
     (1..n).map do |i|
       id = i
-      people = rand(6) + 1
-      #people = (i % 6) + 1
-      {id: id, people: people}
+      p = people || rand(6) + 1
+      #p = (i % 6) + 1
+      {id: id, people: p}
     end
   end
 
@@ -51,28 +51,46 @@ RSpec.describe CarPooling::Service, performance: true do
     puts "="*40
   end
 
-  def measure_load_times(cars_n)
-    cs = random_cars(cars_n)
+  def measure_time_load_random_seats(cars_n)
+    cs = generate_cars(cars_n)
 
-    print_desc("time measurements for load #{cars_n} cars")
+    print_desc("time measurements for load #{cars_n} cars, random seats")
     Benchmark.bmbm { |x|
-      x.report("load cars"){
+      x.report("load cars random seats"){
+        described_class.new(cs)
+      }
+    }
+  end
+
+  def measure_time_load_same_seats(cars_n)
+    seats = 6
+    cs = generate_cars(cars_n, seats)
+
+    print_desc("time measurements for load #{cars_n} cars, same seats #{seats}")
+    Benchmark.bmbm { |x|
+      x.report("load cars same seats"){
         described_class.new(cs)
       }
     }
   end
 
   it 'load cars time measurements' do
-    measure_load_times(0)
-    measure_load_times(1_000)
-    measure_load_times(10_000)
-    measure_load_times(100_000)
-    measure_load_times(1_000_000)
+    measure_time_load_random_seats(0)
+    measure_time_load_random_seats(1_000)
+    measure_time_load_random_seats(10_000)
+    measure_time_load_random_seats(100_000)
+    measure_time_load_random_seats(1_000_000)
+
+    measure_time_load_same_seats(0)
+    measure_time_load_same_seats(1_000)
+    measure_time_load_same_seats(10_000)
+    measure_time_load_same_seats(100_000)
+    measure_time_load_same_seats(1_000_000)
   end
 
   def measure_action_times(cars_n, groups_n)
-    cs = random_cars(cars_n)
-    gs = random_groups(groups_n)
+    cs = generate_cars(cars_n)
+    gs = generate_groups(groups_n)
     s = described_class.new(cs)
     add_groups(s, gs)
 
@@ -123,8 +141,8 @@ RSpec.describe CarPooling::Service, performance: true do
   end
 
   def measure_memory(cars_n, groups_n)
-    gs = random_groups(groups_n)
-    cs = random_cars(cars_n)
+    gs = generate_groups(groups_n)
+    cs = generate_cars(cars_n)
 
     puts ""
     puts "="*40
@@ -162,15 +180,15 @@ RSpec.describe CarPooling::Service, performance: true do
 
   it 'profile' do
     n = 100_000
-    cars = random_cars(n)
-    groups = random_groups(n)
+    cars = generate_cars(n)
+    groups = generate_groups(n)
 
     profile = RubyProf::Profile.new
     profile.exclude_common_methods!
     profile.start
 
-    gs = random_groups(n)
-    cs = random_cars(n)
+    gs = generate_groups(n)
+    cs = generate_cars(n)
     s = setup(cs, gs)
     gs.each do |g|
       s.locate_car_by_group_id(g[:id])
