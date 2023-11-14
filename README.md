@@ -282,7 +282,7 @@ At the end, after getting the acceptance tests passing, I've tried to keep pushe
 master as if it was a branch intended to be stable
 (passing tests and worthy changes before pushing).
 
-### Additional tests
+## Additional tests
 
 I've added tests during development for increasing the chances that the code works as
 well as expected.
@@ -293,11 +293,11 @@ Check the [Usage section](#usage) for more details on how to run them.
 
 I've used 3 kinds of tests:
 
-#### Unit tests
+### Unit tests
 
 For checking the expected behavior of the parts by using specific examples of situations.
 
-#### Property tests
+### Property tests
 
 For checking the expected behavior for the `WaitingQueue` and as an applicable showcase
 for the property-based testing approach, although Ruby is not the best language for it.
@@ -309,7 +309,7 @@ In this case, this is useful because `WaitingQueue` has been implemented trying 
 more efficient (and consequently more complex) than `SimplerQueue` but can be
 interchangeable and should keep the same correct behavior.
 
-#### Performance tests
+### Performance tests
 
 For measuring how long or how much memory certain parts of the code take.
 Their files are terminated with `*_performance_spec.rb` and are filtered by the tag
@@ -325,7 +325,7 @@ different actions (load cars, add journey, dropoff and locate).
 This last one also includes a profiler run to see where there might be performance
 bottlenecks.
 
-### Optimizations
+## Optimizations
 
 Since one of the points in the [Requirements section](#requirements) is "The service
 should be as efficient as possible. ... Explain how you did achieve this requirement.",
@@ -350,7 +350,7 @@ All the optimizations are based on two relationships (implemented with dictionar
   - the amount of available seats for cars
   - the amount of people for waiting groups
 
-#### `CarSpace`
+### `CarSpace`
 
 Here, when loading the cars, the car ids are grouped by their available seats using a
 dictionary whose keys are the available seats and values are `Set`s for the car ids.
@@ -365,7 +365,7 @@ I believe this could be optimized further by using a binary tree instead: O(log 
 
 Just realized this while writing this documentation.
 
-#### `WaitingQueue`
+### `WaitingQueue`
 
 `Hash` in Ruby preserves the order of key insertion, so I'm using the keys for the group
 id so it is efficient to enqueue: O(1) and to drop off: O(1).
