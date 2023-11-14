@@ -325,6 +325,66 @@ different actions (load cars, add journey, dropoff and locate).
 This last one also includes a profiler run to see where there might be performance
 bottlenecks.
 
+### Optimizations
+
+Since one of the points in the [Requirements section](#requirements) is "The service
+should be as efficient as possible. ... Explain how you did achieve this requirement.",
+I'm going to use this section and subsections to explain the details of the approach
+and results.
+
+I initially implemented a naive solution to see the acceptance tests passing. This
+initial solution was not prioritized to be performant.
+
+On focusing in optimizing the performance, I've prioritized a better time cost over
+memory usage but still tried to minimize it when possible.
+
+After several drafts for the actions and data involved, I identified two distinct
+contexts: managing the car spaces (`class CarSpace`) and the waiting queue (`class 
+WaitingQueue`). And decided to optimize them independently.
+
+All the optimizations are based on two relationships (implemented with dictionaries):
+- direct access to the related data from the id
+  - seats for a car id
+  - people for a group id
+- we can filter out a lot by starting from
+  - the amount of available seats for cars
+  - the amount of people for waiting groups
+
+#### `CarSpace`
+
+Here, when loading the cars, the car ids are grouped by their available seats using a
+dictionary whose keys are the available seats and values are `Set`s for the car ids.
+
+This allows to find quickly the cars with closest available seats for the people in the
+group: O(1).
+
+Updating the available seats is less efficient as I believe inserting in the `Set` might
+be O(n). `n` here being the amount of cars with the same available seats.
+
+I believe this could be optimized further by using a binary tree instead: O(log n).
+
+Just realized this while writing this documentation.
+
+#### `WaitingQueue`
+
+`Hash` in Ruby preserves the order of key insertion, so I'm using the keys for the group
+id so it is efficient to enqueue: O(1) and to drop off: O(1).
+
+The queue is traversed when a group has dropped off from a car. At that point we know how
+many seats are available in that car, and we cannot fit groups bigger than that.
+Traversing the whole queue skipping the ones that do not fit would be O(n).
+
+So, having a queue that only traverses the groups who can fit (of the available space or below)
+allows us to take the first one immediately. Having cost O(1).
+
+Since there are only 6 possible amounts of people, we can achieve this by keeping 6 versions
+of the queue. One for each possible amount of people. We just need to enqueue: O(1) and
+drop off: O(1) from all at the same time.
+
+If adding to the queue a group with > 6 people (not expected), the queue for all the groups
+(<= 6 people) would need to be cloned. Having cost O(n). Subsequent enqueue calls for groups
+of the same amount of people would be O(1).
+
 ## Usage
 
 I've added some scripts for easier development
