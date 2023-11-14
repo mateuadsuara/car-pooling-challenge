@@ -387,6 +387,8 @@ of the same amount of people would be O(1).
 
 ## Performance measurements summary
 
+These results are taken from running the [performance tests](#performance_tests)
+
 - load cars: time O(n), memory O(n)
 - journey: time O(1)
 - dropoff: time O(1)
@@ -403,6 +405,8 @@ Time values are in seconds
 | same seats   | 10^3     | 10^4     | 10^5     | 10^6     |
 |--------------|----------|----------|----------|----------|
 | load cars    | 0.000275 | 0.002586 | 0.027652 | 0.321103 |
+
+CAVEAT: these measurements do not include the API parsing the cars JSON into a Hash id => seats
 
 | groups random people | 10^3     | 10^4     | 10^5     | 10^6     |
 |----------------------|----------|----------|----------|----------|
@@ -429,6 +433,8 @@ Time values are in seconds
 | cars and groups random | 457.720k | 4.909M   | 52.530M | 478.723M |
 | cars random            | 73.000k  | 804.136k | 10.487M | 83.887M  |
 | groups random          | 325.984k | 3.608M   | 37.890M | 336.162M |
+
+CAVEAT: these measurements do not include the API parsing the cars JSON into a Hash id => seats
 
 ## Usage
 
