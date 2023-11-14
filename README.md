@@ -385,6 +385,51 @@ If adding to the queue a group with > 6 people (not expected), the queue for all
 (<= 6 people) would need to be cloned. Having cost O(n). Subsequent enqueue calls for groups
 of the same amount of people would be O(1).
 
+## Performance measurements summary
+
+- load cars: time O(n), memory O(n)
+- journey: time O(1)
+- dropoff: time O(1)
+- locate:  time O(1)
+
+### Time measurements
+
+Time values are in seconds
+
+| random seats | 10^3     | 10^4     | 10^5     | 10^6     |
+|--------------|----------|----------|----------|----------|
+| load cars    | 0.000296 | 0.002673 | 0.028729 | 0.327764 |
+
+| same seats   | 10^3     | 10^4     | 10^5     | 10^6     |
+|--------------|----------|----------|----------|----------|
+| load cars    | 0.000275 | 0.002586 | 0.027652 | 0.321103 |
+
+| groups random people | 10^3     | 10^4     | 10^5     | 10^6     |
+|----------------------|----------|----------|----------|----------|
+| journey              | 0.000019 | 0.000019 | 0.000024 | 0.000030 |
+| dropoff              | 0.000016 | 0.000018 | 0.000023 | 0.000029 |
+| locate               | 0.000010 | 0.000010 | 0.000013 | 0.000014 |
+
+| cars random seats | 10^3     | 10^4     | 10^5     | 10^6     |
+|-------------------|----------|----------|----------|----------|
+| journey           | 0.000023 | 0.000025 | 0.000031 | 0.000026 |
+| dropoff           | 0.000021 | 0.000022 | 0.000031 | 0.000026 |
+| locate            | 0.000013 | 0.000011 | 0.000015 | 0.000014 |
+
+| cars and groups random | 10^3     | 10^4     | 10^5     | 10^6     |
+|------------------------|----------|----------|----------|----------|
+| journey                | 0.000024 | 0.000024 | 0.000030 | 0.000038 |
+| dropoff                | 0.000023 | 0.000021 | 0.000030 | 0.000035 |
+| locate                 | 0.000011 | 0.000013 | 0.000017 | 0.000019 |
+
+### Memory measurements
+
+| load cars memory       | 10^3     | 10^4     | 10^5    | 10^6     |
+|------------------------|----------|----------|---------|----------|
+| cars and groups random | 457.720k | 4.909M   | 52.530M | 478.723M |
+| cars random            | 73.000k  | 804.136k | 10.487M | 83.887M  |
+| groups random          | 325.984k | 3.608M   | 37.890M | 336.162M |
+
 ## Usage
 
 I've added some scripts for easier development
