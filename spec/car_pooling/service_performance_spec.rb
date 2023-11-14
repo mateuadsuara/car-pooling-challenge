@@ -32,45 +32,94 @@ RSpec.describe CarPooling::Service, performance: true do
     end
   end
 
+  def add_groups(service, groups)
+    groups.each do |g|
+      service.add_group_journey(g[:id], g[:people])
+    end
+  end
+
   def setup(cars, groups)
     s = described_class.new(cars)
-    groups.each do |g|
-      s.add_group_journey(g[:id], g[:people])
-    end
+    add_groups(s, groups)
     s
   end
 
-  def measure_times(cars_n, groups_n)
-    gs = random_groups(groups_n)
-    cs = random_cars(cars_n)
-    s = setup(cs, gs)
-
+  def print_desc(desc)
     puts ""
     puts "="*40
-    puts "time measurements for #{cars_n} cars, #{groups_n} groups"
+    puts desc
     puts "="*40
+  end
+
+  def measure_load_times(cars_n)
+    cs = random_cars(cars_n)
+
+    print_desc("time measurements for load #{cars_n} cars")
     Benchmark.bmbm { |x|
       x.report("load cars"){
         described_class.new(cs)
+      }
+    }
+  end
+
+  it 'load cars time measurements' do
+    measure_load_times(0)
+    measure_load_times(1_000)
+    measure_load_times(10_000)
+    measure_load_times(100_000)
+    measure_load_times(1_000_000)
+  end
+
+  def measure_action_times(cars_n, groups_n)
+    cs = random_cars(cars_n)
+    gs = random_groups(groups_n)
+    s = described_class.new(cs)
+    add_groups(s, gs)
+
+    print_desc("time measurements for #{cars_n} cars, #{groups_n} groups")
+    dropped_ids = Set.new
+    Benchmark.bmbm { |x|
+      x.report("locate group car"){
+        id = nil
+        loop do
+          id = gs.sample[:id]
+          break if !dropped_ids.include?(id)
+        end
+        s.locate_car_by_group_id(id)
       }
       x.report("add journey"){
         g = random_group
         s.add_group_journey(g[:id], g[:people])
       }
       x.report("dropoff group"){
-        s.dropoff_group_by_id(gs.sample[:id])
-      }
-      x.report("locate group car"){
-        s.locate_car_by_group_id(gs.sample[:id])
+        id = nil
+        loop do
+          id = gs.sample[:id]
+          break if dropped_ids.add?(id)
+        end
+        s.dropoff_group_by_id(id)
       }
     }
   end
 
-  it 'time measurements' do
-    measure_times(1_000, 1_000)
-    measure_times(10_000, 10_000)
-    measure_times(100_000, 100_000)
-    measure_times(1_000_000, 1_000_000)
+  it 'action time measurements' do
+    measure_action_times(0, 2)
+    measure_action_times(0, 1_000)
+    measure_action_times(0, 10_000)
+    measure_action_times(0, 100_000)
+    measure_action_times(0, 1_000_000)
+
+    measure_action_times(0, 2)
+    measure_action_times(1_000, 2)
+    measure_action_times(10_000, 2)
+    measure_action_times(100_000, 2)
+    measure_action_times(1_000_000, 2)
+
+    measure_action_times(0, 2)
+    measure_action_times(1_000, 1_000)
+    measure_action_times(10_000, 10_000)
+    measure_action_times(100_000, 100_000)
+    measure_action_times(1_000_000, 1_000_000)
   end
 
   def measure_memory(cars_n, groups_n)
