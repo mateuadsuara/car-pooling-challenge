@@ -270,6 +270,7 @@ apparent:
 ### Git history / MRs / README documentation
 
 I've decided to keep as raw as possible the history of commits for transparency sake.
+
 In the context where there needs to be collaboration with other teammates between
 changes, the MRs would be a great tool to use for allowing feedback loops.
 In a solo development context, I think it loses a lot of value (the feedback loop with
@@ -302,7 +303,7 @@ For checking the expected behavior for the `WaitingQueue` and as an applicable s
 for the property-based testing approach, although Ruby is not the best language for it.
 
 This example uses a `SimplerQueue` as a reference of the correct behavior and checks
-that: for a set of random valid actions and arguments, they behave in the same way.
+that: for many sets of random valid actions and arguments, they behave in the same way.
 
 In this case, this is useful because `WaitingQueue` has been implemented trying to be
 more efficient (and consequently more complex) than `SimplerQueue` but can be
